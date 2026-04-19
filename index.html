@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>【案B：冒険マップ版】未来をつくる手のひらサイズの冒険 | KidsVenture in 佐賀</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        'bg-dark': '#0d1f12',
+        'bg-mid': '#14331c',
+        'grass': '#6fba2c',
+        'grass-d': '#4a8c15',
+        'grass-l': '#a8e25d',
+        'sky': '#60b4e8',
+        'coin': '#ffd43b',
+        'fire': '#ff7a2b',
+        'heart': '#ff4d6d',
+        'paper': '#f3ead0',
+        'ink': '#1a1a1a',
+        'silver': '#c0c0c0',
+        'bronze': '#cd7f32',
+        'gold': '#d4af37',
+      },
+      fontFamily: {
+        display: ['"Zen Kaku Gothic New"', 'sans-serif'],
+        pixel: ['"Press Start 2P"', 'monospace'],
+        dot: ['"DotGothic16"', 'sans-serif'],
+        body: ['"Zen Kaku Gothic New"', 'sans-serif'],
+      }
+    }
+  }
+}
+</script>
+
+<style type="text/tailwindcss">
+@layer base {
+  body { @apply font-body text-ink bg-paper; text-wrap: pretty; }
+  h1,h2,h3,h4 { @apply font-display font-black; }
+}
+@layer utilities {
+  .pixel-border {
+    box-shadow:
+      0 -4px 0 0 #1a1a1a, 0 4px 0 0 #1a1a1a,
+      -4px 0 0 0 #1a1a1a, 4px 0 0 0 #1a1a1a;
+  }
+  .pixel-shadow { box-shadow: 6px 6px 0 rgba(26,26,26,0.9); }
+  .pixel-shadow-sm { box-shadow: 4px 4px 0 rgba(26,26,26,0.9); }
+  .pixel-shadow-white { box-shadow: 4px 4px 0 rgba(255,255,255,0.25); }
+  .hero-sky {
+    background:
+      linear-gradient(180deg, #8fd6ff 0%, #b8e6ff 40%, #cdefb0 55%, #6fba2c 70%, #4a8c15 100%);
+  }
+  .pixel-ground {
+    background:
+      repeating-linear-gradient(90deg, #4a8c15 0 48px, #5ba01b 48px 96px);
+  }
+  .dashed-quest {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'><line x1='0' y1='50%25' x2='100%25' y2='50%25' stroke='%23ffd43b' stroke-width='6' stroke-dasharray='14,10' stroke-linecap='round'/></svg>");
+    background-repeat: no-repeat;
+  }
+  .chip-xp {
+    @apply inline-flex items-center gap-1 bg-coin text-ink font-black text-xs px-3 py-1 rounded-md pixel-shadow-sm border-2 border-ink;
+  }
+  .btn-quest {
+    @apply inline-flex items-center gap-2 bg-fire text-white px-8 py-4 font-black text-base pixel-shadow border-4 border-ink hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_rgba(26,26,26,0.9)] transition-all;
+    border-radius: 6px;
+  }
+  .btn-white-q {
+    @apply inline-flex items-center gap-2 bg-white text-ink px-8 py-4 font-black text-base pixel-shadow-sm border-4 border-ink;
+    border-radius: 6px;
+  }
+  .card-pixel {
+    @apply bg-white border-4 border-ink pixel-shadow;
+    border-radius: 6px;
+  }
+  .card-dark {
+    @apply bg-bg-dark text-white border-4 border-ink pixel-shadow;
+    border-radius: 6px;
+  }
+  .section-h {
+    @apply inline-block bg-ink text-coin font-pixel text-[11px] md:text-xs px-4 py-2;
+  }
+  .fade-in { opacity: 0; transform: translateY(18px); transition: opacity .7s, transform .7s; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+  .cloud {
+    background: white;
+    border-radius: 999px;
+    filter: drop-shadow(0 2px 0 rgba(0,0,0,0.15));
+  }
+  .marker-num {
+    @apply inline-grid place-items-center w-12 h-12 md:w-16 md:h-16 bg-coin text-ink font-pixel text-sm md:text-base border-4 border-ink pixel-shadow-sm;
+    border-radius: 999px;
+  }
+  .tile-ground {
+    background:
+      linear-gradient(#4a8c15, #4a8c15) 0 0 / 100% 6px no-repeat,
+      repeating-linear-gradient(0deg, #6fba2c 0 4px, #5ba01b 4px 8px);
+  }
+  .progress-bar {
+    background: repeating-linear-gradient(90deg, #ffd43b 0 12px, #e8c22f 12px 24px);
+  }
+  .status-row {
+    font-family: 'Press Start 2P', monospace;
+    letter-spacing: 0.05em;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ====== NAV ====== -->
+<nav class="fixed top-0 left-0 w-full h-14 bg-bg-dark text-white z-50 flex items-center justify-between px-4 md:px-8 border-b-4 border-ink">
+  <div class="flex items-center gap-2">
+    <img src="KVロゴデザイン_02_黒.png" class="h-7 w-auto bg-white rounded-sm p-0.5">
+    <span class="text-white/40">×</span>
+    <img src="Ⅸ-Partyロゴ.jpg" class="h-7 w-auto">
+    <span class="text-white/40">×</span>
+    <img src="Dojoロゴ (1).jpg" class="h-7 w-auto">
+  </div>
+  <div class="hidden lg:flex items-center gap-5 font-pixel text-[10px]">
+    <a href="#quest" class="hover:text-coin">QUEST</a>
+    <a href="#day" class="hover:text-coin">MAP</a>
+    <a href="#details" class="hover:text-coin">INFO</a>
+    <a href="#venue" class="hover:text-coin">VENUE</a>
+    <a href="#voice" class="hover:text-coin">VOICE</a>
+    <a href="#faq" class="hover:text-coin">FAQ</a>
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSfXnKgXhcliYisgGPIirNkLT0zsZUS83ASh_rFXyQBoOUDn_Q/viewform?usp=dialog" class="bg-fire px-3 py-2 text-white border-2 border-ink">START</a>
+  </div>
+  <button id="menu-toggle" class="lg:hidden p-2">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <div id="mobile-menu" class="hidden absolute top-14 left-0 w-full bg-bg-dark shadow-lg lg:hidden py-4 px-6 flex flex-col gap-3 border-b-4 border-coin">
+    <a href="#quest" class="mobile-link font-pixel text-[11px] text-white">QUEST</a>
+    <a href="#day" class="mobile-link font-pixel text-[11px] text-white">MAP</a>
+    <a href="#details" class="mobile-link font-pixel text-[11px] text-white">INFO</a>
+    <a href="#venue" class="mobile-link font-pixel text-[11px] text-white">VENUE</a>
+    <a href="#voice" class="mobile-link font-pixel text-[11px] text-white">VOICE</a>
+    <a href="#faq" class="mobile-link font-pixel text-[11px] text-white">FAQ</a>
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSfXnKgXhcliYisgGPIirNkLT0zsZUS83ASh_rFXyQBoOUDn_Q/viewform?usp=dialog" class="mobile-link font-pixel text-[11px] text-coin">▶ START QUEST</a>
+  </div>
+</nav>
+
+<!-- ====== HERO ====== -->
+<section id="hero" class="relative pt-14 hero-sky overflow-hidden">
+  <!-- Clouds -->
+  <div class="absolute top-24 left-6 w-24 h-10 cloud"></div>
+  <div class="absolute top-40 right-10 w-32 h-12 cloud"></div>
+  <div class="absolute top-52 left-1/3 w-20 h-8 cloud"></div>
+
+  <!-- Pixel ground at bottom -->
+  <div class="absolute bottom-0 left-0 w-full h-8 pixel-ground border-t-4 border-ink"></div>
+
+  <div class="relative max-w-7xl mx-auto px-4 md:px-8 pt-12 pb-24 grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-10 items-center">
+    <div class="fade-in">
+      <!-- Mini status row -->
+      <div class="flex flex-wrap gap-2 mb-5">
+        <span class="chip-xp">▶ PRESS START</span>
+        <span class="chip-xp bg-white">PARTY: 親子16組</span>
+        <span class="chip-xp bg-heart text-white">COST: 0円</span>
+      </div>
+      <p class="font-pixel text-[10px] md:text-xs text-ink/70 mb-2 tracking-widest">KIDS VENTURE × IX-PARTY × CODERDOJO SAGA</p>
+      <p class="font-display font-black text-base md:text-lg text-grass-d mb-3">未来をつくる手のひらサイズの冒険</p>
+      <h1 class="font-display font-black leading-[1.08] text-ink text-3xl md:text-5xl lg:text-[56px] mb-5">
+        小・中学生のための<br>
+        <span class="bg-ink text-coin px-3 inline-block my-1">電子工作＆プログラミング</span><br>
+        ワークショップ
+      </h1>
+      <p class="text-base md:text-lg font-bold text-ink/85 leading-relaxed mb-6">
+        手を動かして基板を組み立て、それを動かすゲームを作る──"つくる"と"動かす"を一度に味わうクエストです。
+      </p>
+
+      <!-- Quest preview -->
+      <div class="card-pixel p-4 md:p-5 mb-6 bg-paper">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="font-pixel text-[10px] text-grass-d">▼ TODAY'S QUESTS</span>
+          <div class="h-px flex-1 bg-ink/20"></div>
+        </div>
+        <div class="space-y-2">
+          <div class="flex items-center gap-3">
+            <span class="font-pixel text-[10px] text-ink bg-grass-l px-2 py-1 border-2 border-ink">Q.1</span>
+            <span class="font-black text-sm md:text-base">🔩 はんだ付けで基板を組み立てよ</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="font-pixel text-[10px] text-ink bg-coin px-2 py-1 border-2 border-ink">Q.2</span>
+            <span class="font-black text-sm md:text-base">💻 BASICで"かわくだり"を作れ</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="font-pixel text-[10px] text-white bg-fire px-2 py-1 border-2 border-ink">GOAL</span>
+            <span class="font-black text-sm md:text-base">🏆 自作パソコンを持ち帰れ</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-3">
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSfXnKgXhcliYisgGPIirNkLT0zsZUS83ASh_rFXyQBoOUDn_Q/viewform?usp=dialog" class="btn-quest">▶ 冒険に参加する</a>
+        <a href="#quest" class="btn-white-q">内容をみる ↓</a>
+      </div>
+      <p class="mt-5 text-sm font-bold text-ink/85">📅 5/16(土) 伊万里 ・ 5/17(日) 佐賀 ／ 抽選制（焦らずOK）</p>
+    </div>
+
+    <!-- Pixel card with photo -->
+    <div class="fade-in relative">
+      <div class="card-pixel p-3 bg-white rotate-2">
+        <div class="relative h-[280px] md:h-[360px] border-4 border-ink overflow-hidden">
+          <img src="https://kidsventure.jp/wordpress/wp-content/uploads/2023/09/IMG_2913.jpg" class="w-full h-full object-cover">
+          <div class="absolute top-3 left-3 font-pixel text-[10px] bg-ink text-coin px-2 py-1">AM STAGE</div>
+        </div>
+        <div class="font-pixel text-[10px] text-ink text-center mt-2 pb-1">▶ はんだ付けの冒険</div>
+      </div>
+      <div class="card-pixel p-3 bg-white absolute -bottom-4 -left-6 md:-left-10 w-[55%] -rotate-3">
+        <div class="relative h-[130px] md:h-[180px] border-4 border-ink overflow-hidden">
+          <img src="https://kidsventure.jp/wordpress/wp-content/uploads/2023/09/IMG_2676.jpg" class="w-full h-full object-cover">
+          <div class="absolute top-2 left-2 font-pixel text-[9px] bg-fire text-white px-2 py-1">PM STAGE</div>
+        </div>
+      </div>
+      <div class="absolute -top-4 -right-2 md:-right-4 card-pixel bg-coin px-3 py-2 rotate-6">
+        <div class="font-pixel text-[10px]">💰 GET: IchigoJam</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="relative bg-ink text-white py-3 border-t-4 border-b-4 border-ink">
+    <div class="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-center status-row text-[9px] md:text-[10px]">
+      <div>📅 DATE: 5/16-17</div>
+      <div>💰 COST: 0円</div>
+      <div>👥 PARTY: 親子16組</div>
+      <div>🎁 REWARD: IchigoJam</div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== QUEST (What) ====== -->
+<section id="quest" class="py-20 md:py-28 bg-paper relative overflow-hidden">
+  <div class="max-w-6xl mx-auto px-4 md:px-8 relative">
+    <div class="text-center mb-16 fade-in">
+      <span class="section-h">▶ THE QUEST</span>
+      <h2 class="mt-5 text-3xl md:text-5xl">1日で、<span class="bg-coin border-4 border-ink px-3 inline-block mx-1">2つのステージ</span>をクリアしよう。</h2>
+      <p class="mt-4 font-bold opacity-80">AMは"つくる"、PMは"動かす"。ふたつのクエストが、きみを待っています。</p>
+    </div>
+
+    <!-- Stage 1 -->
+    <div class="fade-in card-pixel mb-10 overflow-hidden bg-white">
+      <div class="bg-grass p-2 border-b-4 border-ink flex items-center gap-3">
+        <span class="font-pixel text-[10px] bg-ink text-coin px-2 py-1">STAGE 1</span>
+        <span class="font-pixel text-[10px] text-ink">AM 10:00 – 12:00</span>
+        <span class="ml-auto font-pixel text-[10px] text-ink/70">▼ SOLDERING</span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-[1.2fr_1fr]">
+        <div class="p-6 md:p-10">
+          <p class="marker-num mb-4">01</p>
+          <h3 class="text-2xl md:text-3xl mb-3">はんだ付けで<br>基板を組み立てよ</h3>
+          <p class="leading-relaxed mb-5">
+            抵抗・LED・IC──部品を"はんだごて"で基板に溶接していく、電子工作クエスト。きみの手で、パソコンの心臓部が形になっていく。
+          </p>
+          <div class="grid grid-cols-2 gap-2 mb-5">
+            <div class="bg-grass-l border-2 border-ink px-3 py-2 text-xs font-black">✅ 初心者OK</div>
+            <div class="bg-grass-l border-2 border-ink px-3 py-2 text-xs font-black">✅ 道具はレンタル</div>
+            <div class="bg-grass-l border-2 border-ink px-3 py-2 text-xs font-black">✅ 失敗OK（直します）</div>
+            <div class="bg-grass-l border-2 border-ink px-3 py-2 text-xs font-black">✅ 親子で挑戦</div>
+          </div>
+          <div class="inline-flex items-center gap-2 font-pixel text-[10px] text-grass-d">
+            <span>🎯 QUEST REWARD:</span> <span class="text-ink">自分のIchigoJam本体</span>
+          </div>
+        </div>
+        <div class="h-60 md:h-auto border-t-4 md:border-t-0 md:border-l-4 border-ink overflow-hidden">
+          <img src="handa.png" class="w-full h-full object-cover">
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress arrow -->
+    <div class="flex items-center justify-center mb-10 fade-in">
+      <div class="font-pixel text-[10px] bg-ink text-coin px-4 py-2 border-4 border-ink pixel-shadow-sm">🍱 LUNCH BREAK / 60min</div>
+    </div>
+
+    <!-- Stage 2 -->
+    <div class="fade-in card-pixel overflow-hidden bg-white">
+      <div class="bg-fire p-2 border-b-4 border-ink flex items-center gap-3">
+        <span class="font-pixel text-[10px] bg-ink text-coin px-2 py-1">STAGE 2</span>
+        <span class="font-pixel text-[10px] text-white">PM 13:00 – 15:00</span>
+        <span class="ml-auto font-pixel text-[10px] text-white/80">▼ PROGRAMMING</span>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-[1fr_1.2fr]">
+        <div class="h-60 md:h-auto border-b-4 md:border-b-0 md:border-r-4 border-ink overflow-hidden order-2 md:order-1">
+          <img src="https://kidsventure.jp/wordpress/wp-content/uploads/2023/09/IMG_2676.jpg" class="w-full h-full object-cover">
+        </div>
+        <div class="p-6 md:p-10 order-1 md:order-2">
+          <p class="marker-num mb-4 bg-fire text-white">02</p>
+          <h3 class="text-2xl md:text-3xl mb-3">BASICで<br>"かわくだりゲーム"を作れ</h3>
+          <p class="leading-relaxed mb-5">
+            完成したIchigoJamにテレビとキーボードをつなぎ、BASIC言語でゲームを作るクエスト。数字を変えると、キャラの速さも見た目もどんどん変わる。改造はきみ次第。
+          </p>
+          <div class="bg-ink text-coin font-pixel text-xs p-4 border-4 border-ink mb-5 overflow-auto">
+            <div>10 CLS</div>
+            <div>20 LOCATE RND(32),0</div>
+            <div>30 PRINT "*"</div>
+            <div>40 GOTO 20</div>
+          </div>
+          <div class="inline-flex items-center gap-2 font-pixel text-[10px] text-fire">
+            <span>🎯 QUEST REWARD:</span> <span class="text-ink">"動いた！"の感動</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GOAL -->
+    <div class="fade-in mt-10 card-dark p-8 md:p-10 text-center relative">
+      <span class="absolute -top-4 left-1/2 -translate-x-1/2 font-pixel text-[10px] bg-coin text-ink px-4 py-2 border-4 border-ink">🏆 FINAL GOAL</span>
+      <h3 class="text-2xl md:text-3xl mb-3 text-white">きみが作ったパソコンを、<br>家に持ち帰る。</h3>
+      <p class="leading-relaxed opacity-90 max-w-2xl mx-auto">
+        完成したIchigoJamはお持ち帰りOK。家に帰ってもクエストは続く。毎日ちょっとずつ改造して、きみだけの1台に育てていこう。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ====== PRODUCT ====== -->
+<section id="product" class="py-20 bg-bg-dark text-white relative overflow-hidden">
+  <div class="absolute inset-0 opacity-10" style="background-image:radial-gradient(circle, white 1px, transparent 1px);background-size:20px 20px;"></div>
+  <div class="relative max-w-5xl mx-auto px-4 md:px-8">
+    <div class="text-center mb-10 fade-in">
+      <span class="section-h">▶ ITEM DETAIL</span>
+      <h2 class="mt-5 text-3xl md:text-4xl text-white">手に入れるのは<span class="text-coin">「IchigoJam」</span></h2>
+    </div>
+    <div class="fade-in card-pixel bg-paper text-ink grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 p-6 md:p-10 items-center">
+      <div class="w-full md:w-[240px] bg-white p-3 border-4 border-ink">
+        <img src="IchigoJam.jpeg" class="w-full">
+      </div>
+      <div>
+        <p class="font-pixel text-[10px] text-grass-d mb-2">■ ITEM: IchigoJam</p>
+        <h3 class="text-xl md:text-2xl mb-3">手のひらサイズの こどもパソコン</h3>
+        <p class="leading-relaxed text-sm md:text-base mb-4">
+          初心者向け言語 <b>BASIC</b> を現代に復活させた、子ども専用のプログラミングパソコン。テレビとキーボードをつなぐだけ。インターネットに繋がらないので、集中して遊べる。
+        </p>
+        <div class="grid grid-cols-3 gap-2 text-xs">
+          <div class="bg-white border-2 border-ink px-2 py-2 text-center font-black">🔒 ネット無し</div>
+          <div class="bg-white border-2 border-ink px-2 py-2 text-center font-black">📺 TV接続</div>
+          <div class="bg-white border-2 border-ink px-2 py-2 text-center font-black">✏️ BASIC</div>
+        </div>
+        <p class="text-xs opacity-60 italic mt-3">※IchigoJamは株式会社jig.jpの登録商標です。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== MAP (Day timeline) ====== -->
+<section id="day" class="py-20 md:py-28 bg-paper relative overflow-hidden">
+  <div class="max-w-5xl mx-auto px-4 md:px-8 relative">
+    <div class="text-center mb-14 fade-in">
+      <span class="section-h">▶ TODAY'S MAP</span>
+      <h2 class="mt-5 text-3xl md:text-5xl">1日の<span class="bg-coin border-4 border-ink px-3 mx-1 inline-block">冒険マップ</span></h2>
+      <p class="mt-4 font-bold opacity-80">朝10時、冒険スタート。夕方3時、ゴール。</p>
+    </div>
+
+    <!-- Zig-zag quest map -->
+    <div class="relative space-y-10">
+      <!-- Line 1 -->
+      <div class="fade-in grid grid-cols-[auto_1fr] gap-4 md:gap-6 items-center">
+        <div class="marker-num bg-white">▶</div>
+        <div class="card-pixel p-4 md:p-5">
+          <div class="flex items-center gap-3 mb-1">
+            <span class="font-pixel text-[10px] bg-grass-l px-2 py-1 border-2 border-ink">10:00</span>
+            <span class="font-pixel text-[10px] text-ink/60">START</span>
+          </div>
+          <div class="font-black text-base md:text-lg">受付・オリエンテーション</div>
+          <p class="text-sm opacity-80 mt-1">冒険のルールと道具の使い方を、先生がやさしく説明。</p>
+        </div>
+      </div>
+
+      <div class="fade-in grid grid-cols-[auto_1fr] gap-4 md:gap-6 items-center md:ml-16">
+        <div class="marker-num">1</div>
+        <div class="card-pixel p-4 md:p-5 border-l-[10px] border-grass">
+          <div class="flex items-center gap-3 mb-1">
+            <span class="font-pixel text-[10px] bg-grass text-white px-2 py-1 border-2 border-ink">10:15 – 12:00</span>
+            <span class="font-pixel text-[10px] text-grass-d">STAGE 1 / AM</span>
+          </div>
+          <div class="font-black text-base md:text-lg">🔩 はんだ付けで IchigoJam を組み立てよう</div>
+          <p class="text-sm opacity-80 mt-1">はんだごての使い方 → 部品のはんだ付け → 動作チェック</p>
+        </div>
+      </div>
+
+      <div class="fade-in grid grid-cols-[auto_1fr] gap-4 md:gap-6 items-center md:ml-32">
+        <div class="marker-num bg-fire text-white">🍱</div>
+        <div class="card-pixel p-4 md:p-5">
+          <div class="flex items-center gap-3 mb-1">
+            <span class="font-pixel text-[10px] bg-fire text-white px-2 py-1 border-2 border-ink">12:00 – 13:00</span>
+            <span class="font-pixel text-[10px] text-fire">BREAK</span>
+          </div>
+          <div class="font-black text-base md:text-lg">お昼ごはん休憩（60分）</div>
+          <p class="text-sm opacity-80 mt-1">お弁当は各自持参。会場内で食べられます。</p>
+        </div>
+      </div>
+
+      <div class="fade-in grid grid-cols-[auto_1fr] gap-4 md:gap-6 items-center md:ml-16">
+        <div class="marker-num bg-fire text-white">2</div>
+        <div class="card-pixel p-4 md:p-5 border-l-[10px] border-fire">
+          <div class="flex items-center gap-3 mb-1">
+            <span class="font-pixel text-[10px] bg-fire text-white px-2 py-1 border-2 border-ink">13:00 – 14:45</span>
+            <span class="font-pixel text-[10px] text-fire">STAGE 2 / PM</span>
+          </div>
+          <div class="font-black text-base md:text-lg">💻 プログラミングでゲームを作ろう</div>
+          <p class="text-sm opacity-80 mt-1">BASICの基本 → LED制御 → かわくだりゲーム → 自分流カスタマイズ</p>
+        </div>
+      </div>
+
+      <div class="fade-in grid grid-cols-[auto_1fr] gap-4 md:gap-6 items-center">
+        <div class="marker-num">👏</div>
+        <div class="card-pixel p-4 md:p-5">
+          <div class="flex items-center gap-3 mb-1">
+            <span class="font-pixel text-[10px] bg-white px-2 py-1 border-2 border-ink">14:45</span>
+          </div>
+          <div class="font-black text-base md:text-lg">感想発表・まとめ</div>
+          <p class="text-sm opacity-80 mt-1">発見したこと・改造アイデアを、みんなで共有。</p>
+        </div>
+      </div>
+
+      <div class="fade-in grid grid-cols-[auto_1fr] gap-4 md:gap-6 items-center">
+        <div class="marker-num bg-ink text-coin">🏆</div>
+        <div class="card-dark p-5 md:p-6">
+          <div class="flex items-center gap-3 mb-1">
+            <span class="font-pixel text-[10px] bg-coin text-ink px-2 py-1 border-2 border-coin">15:00 / GOAL</span>
+          </div>
+          <div class="font-black text-lg md:text-xl text-coin">🎉 CLEAR! IchigoJam を持ち帰ろう</div>
+          <p class="text-sm opacity-90 mt-1 text-white">作った IchigoJam は家でも使えます。冒険は、帰ってからも続きます。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== BENEFITS / LEVEL UP ====== -->
+<section id="benefits" class="py-20 bg-grass text-white relative overflow-hidden">
+  <div class="absolute inset-0 opacity-20" style="background-image:linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px);background-size:100% 28px;"></div>
+  <div class="relative max-w-6xl mx-auto px-4 md:px-8">
+    <div class="text-center mb-14 fade-in">
+      <span class="section-h bg-white text-grass-d">▶ LEVEL UP</span>
+      <h2 class="mt-5 text-3xl md:text-5xl">参加すると、<br class="md:hidden">こんな <span class="bg-coin text-ink border-4 border-ink px-3 inline-block">スキル</span> が手に入る。</h2>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="fade-in card-pixel bg-white text-ink p-6">
+        <div class="font-pixel text-[10px] text-grass-d mb-2">SKILL ▲ 01</div>
+        <h4 class="text-xl mb-2">🛠️ ものを作る力 +100</h4>
+        <p class="text-sm leading-relaxed opacity-80">はんだごてを初めて握った子も、最後は全員IchigoJamを完成させています。"できた"が自信に変わる。</p>
+        <div class="mt-4 h-3 bg-paper border-2 border-ink overflow-hidden"><div class="h-full progress-bar" style="width:92%"></div></div>
+      </div>
+      <div class="fade-in card-pixel bg-white text-ink p-6">
+        <div class="font-pixel text-[10px] text-grass-d mb-2">SKILL ▲ 02</div>
+        <h4 class="text-xl mb-2">🧠 プログラミング +80</h4>
+        <p class="text-sm leading-relaxed opacity-80">BASICは数字を変えるだけで結果が変わる直感的な言語。"動かす楽しさ"を体で覚えられます。</p>
+        <div class="mt-4 h-3 bg-paper border-2 border-ink overflow-hidden"><div class="h-full progress-bar" style="width:80%"></div></div>
+      </div>
+      <div class="fade-in card-pixel bg-white text-ink p-6">
+        <div class="font-pixel text-[10px] text-grass-d mb-2">SKILL ▲ 03</div>
+        <h4 class="text-xl mb-2">👨‍👩‍👧 親子の絆 +120</h4>
+        <p class="text-sm leading-relaxed opacity-80">保護者も一緒に参加。同じ体験を共有した日は、家に帰ってからもずっと話題になります。</p>
+        <div class="mt-4 h-3 bg-paper border-2 border-ink overflow-hidden"><div class="h-full progress-bar" style="width:98%"></div></div>
+      </div>
+    </div>
+
+    <!-- FOR PARENTS block -->
+    <div class="fade-in mt-12 card-dark p-8 md:p-10">
+      <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 items-center">
+        <div>
+          <span class="inline-block font-pixel text-[10px] bg-coin text-ink px-3 py-1.5 border-2 border-ink mb-3">▶ FOR PARENTS</span>
+          <h4 class="text-xl md:text-2xl mb-3 text-white">「やってみたい」の入口を、<br>安全に、大人と一緒に。</h4>
+          <p class="leading-relaxed opacity-90 text-sm md:text-base">
+            2020年から小学校でプログラミング教育が必修化されました。学校の授業だけでは触れにくい"ものづくりの入口"を、1日に凝縮した体験プログラムです。佐賀のエンジニア・ボランティアが、安全管理と手厚いサポートで支えます。
+          </p>
+        </div>
+        <div class="grid grid-cols-3 gap-3 text-center">
+          <div><div class="font-pixel text-2xl md:text-3xl text-coin">16</div><div class="text-xs mt-1 text-white/80">親子組/日</div></div>
+          <div><div class="font-pixel text-2xl md:text-3xl text-coin">0</div><div class="text-xs mt-1 text-white/80">円</div></div>
+          <div><div class="font-pixel text-2xl md:text-3xl text-coin">5h</div><div class="text-xs mt-1 text-white/80">の体験</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== VOICE ====== -->
+<section id="voice" class="py-20 bg-paper">
+  <div class="max-w-6xl mx-auto px-4 md:px-8">
+    <div class="text-center mb-14 fade-in">
+      <span class="section-h">▶ PLAYER VOICES</span>
+      <h2 class="mt-5 text-3xl md:text-5xl">参加した<span class="bg-coin border-4 border-ink px-3 mx-1 inline-block">みんなの声</span></h2>
+      <p class="mt-4 font-bold opacity-80">これまで全国で開催してきたワークショップから。</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+      <div class="fade-in card-pixel bg-white p-6">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-12 h-12 bg-grass text-white font-pixel text-sm grid place-items-center border-4 border-ink">S</div>
+          <div><div class="font-black text-sm">小5・Sくん</div><div class="text-xs opacity-60">2023 / 愛媛</div></div>
+        </div>
+        <p class="text-sm leading-relaxed">「もっとゲームを作りたい！数字を変えるだけでキャラの動きが変わるのがおもしろかった」</p>
+      </div>
+      <div class="fade-in card-pixel bg-white p-6">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-12 h-12 bg-fire text-white font-pixel text-sm grid place-items-center border-4 border-ink">M</div>
+          <div><div class="font-black text-sm">小6・Mさんの保護者</div><div class="text-xs opacity-60">2025 / 香川</div></div>
+        </div>
+        <p class="text-sm leading-relaxed">「スタッフが1人1人を見てくれて、本人の吸収力が想像以上でした。家に帰ってからも作り続けています」</p>
+      </div>
+      <div class="fade-in card-pixel bg-white p-6">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-12 h-12 bg-heart text-white font-pixel text-sm grid place-items-center border-4 border-ink">T</div>
+          <div><div class="font-black text-sm">中1・Tくん</div><div class="text-xs opacity-60">過去の開催より</div></div>
+        </div>
+        <p class="text-sm leading-relaxed">「はじめてのはんだ付けでドキドキしたけど、最後は自分だけのパソコンが動いて感動した！」</p>
+      </div>
+    </div>
+
+    <!-- Past reports -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <a href="https://kidsventure.jp/wordpress/report/20230826_ehime/" target="_blank" class="fade-in card-pixel bg-white flex overflow-hidden group">
+        <div class="w-1/3 shrink-0 border-r-4 border-ink overflow-hidden"><img src="https://kidsventure.jp/wordpress/wp-content/uploads/2023/09/IMG_2584.jpg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"></div>
+        <div class="p-5 flex flex-col justify-center">
+          <span class="font-pixel text-[9px] text-grass-d">2023 / 愛媛県</span>
+          <h4 class="mt-1 leading-snug text-base">だんだんPARK 出張IchigoJam教室</h4>
+          <p class="text-xs opacity-70 mt-2">四国地方初開催。13名が参加、はんだ付けからゲーム作りまで。</p>
+        </div>
+      </a>
+      <a href="https://kidsventure.jp/wordpress/report/20250915/" target="_blank" class="fade-in card-pixel bg-white flex overflow-hidden group">
+        <div class="w-1/3 shrink-0 border-r-4 border-ink overflow-hidden"><img src="https://kidsventure.jp/wordpress/wp-content/uploads/2025/09/20250915_005837634_iOS-1-1024x768.jpg" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"></div>
+        <div class="p-5 flex flex-col justify-center">
+          <span class="font-pixel text-[9px] text-grass-d">2025 / 香川県</span>
+          <h4 class="mt-1 leading-snug text-base">かがわスタートアップフェスタ2025</h4>
+          <p class="text-xs opacity-70 mt-2">フェスタ内プログラミング教室。集中力と吸収力が光る1日。</p>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ====== DETAILS ====== -->
+<section id="details" class="py-20 bg-bg-dark text-white">
+  <div class="max-w-5xl mx-auto px-4 md:px-8">
+    <div class="text-center mb-10 fade-in">
+      <span class="section-h">▶ EVENT INFO</span>
+      <h2 class="mt-5 text-3xl md:text-4xl text-white">開催概要</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+      <div class="fade-in card-pixel bg-paper text-ink p-6 md:p-8 border-t-[10px] border-grass">
+        <div class="flex items-baseline gap-3 mb-1"><span class="font-pixel text-3xl md:text-4xl text-grass-d">5/16</span><span class="font-black">土</span></div>
+        <p class="font-black text-lg">伊万里会場 / COZホール</p>
+      </div>
+      <div class="fade-in card-pixel bg-paper text-ink p-6 md:p-8 border-t-[10px] border-fire">
+        <div class="flex items-baseline gap-3 mb-1"><span class="font-pixel text-3xl md:text-4xl text-fire">5/17</span><span class="font-black">日</span></div>
+        <p class="font-black text-lg">佐賀会場 / アバンセ 第3研修室</p>
+      </div>
+    </div>
+
+    <div class="fade-in card-pixel bg-paper text-ink overflow-hidden">
+      <dl class="divide-y-4 divide-ink/10">
+        <div class="grid grid-cols-[auto_1fr] md:grid-cols-[200px_1fr]"><dt class="bg-grass text-white font-black p-4 md:p-6 border-r-4 border-ink">🕐 時間</dt><dd class="p-4 md:p-6">10:00〜15:00（昼休憩 60分）</dd></div>
+        <div class="grid grid-cols-[auto_1fr] md:grid-cols-[200px_1fr]"><dt class="bg-grass text-white font-black p-4 md:p-6 border-r-4 border-ink">👦 対象</dt><dd class="p-4 md:p-6">小学4年生〜中学生と、その保護者</dd></div>
+        <div class="grid grid-cols-[auto_1fr] md:grid-cols-[200px_1fr]"><dt class="bg-grass text-white font-black p-4 md:p-6 border-r-4 border-ink">👥 定員</dt><dd class="p-4 md:p-6">各日 親子16組（応募多数の場合 <b class="text-grass-d">抽選</b>）</dd></div>
+        <div class="grid grid-cols-[auto_1fr] md:grid-cols-[200px_1fr]"><dt class="bg-grass text-white font-black p-4 md:p-6 border-r-4 border-ink">💰 参加費</dt><dd class="p-4 md:p-6 font-black text-heart text-xl">無料</dd></div>
+        <div class="grid grid-cols-[auto_1fr] md:grid-cols-[200px_1fr]"><dt class="bg-grass text-white font-black p-4 md:p-6 border-r-4 border-ink">📝 申込〆切</dt><dd class="p-4 md:p-6">5月7日 ／ 抽選結果は5月9日までにメールでご連絡</dd></div>
+        <div class="grid grid-cols-[auto_1fr] md:grid-cols-[200px_1fr]"><dt class="bg-grass text-white font-black p-4 md:p-6 border-r-4 border-ink">🎒 持ち物</dt><dd class="p-4 md:p-6">昼食・飲み物（工具・材料はすべて主催側でご用意します）</dd></div>
+        <div class="grid grid-cols-[auto_1fr] md:grid-cols-[200px_1fr]"><dt class="bg-grass text-white font-black p-4 md:p-6 border-r-4 border-ink">👨‍🏫 講師</dt><dd class="p-4 md:p-6">KidsVenture</dd></div>
+      </dl>
+    </div>
+
+    <!-- 抽選は公平 -->
+    <div class="fade-in mt-8 card-pixel bg-coin text-ink p-6 md:p-8 text-center">
+      <p class="font-pixel text-[10px] mb-3">▶ FAIR LOTTERY</p>
+      <h4 class="text-lg md:text-xl mb-2">"早い者勝ち"ではなく、<br class="md:hidden">全員公平な <span class="bg-ink text-coin px-2">抽選制</span> です。</h4>
+      <p class="text-sm md:text-base leading-relaxed max-w-2xl mx-auto opacity-85">
+        応募期間内ならいつ申し込んでも当選確率は同じ。じっくり読んで、納得してから送信してください。結果は5月9日までに全員にメールでお知らせします。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ====== VENUE ====== -->
+<section id="venue" class="py-20 bg-paper">
+  <div class="max-w-4xl mx-auto px-4 md:px-8">
+    <div class="text-center mb-10 fade-in">
+      <span class="section-h">▶ VENUE</span>
+      <h2 class="mt-5 text-3xl md:text-4xl">会場</h2>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 mb-8 fade-in">
+      <button onclick="switchVenue('imari')" id="tab-imari" class="venue-tab py-4 px-6 font-black transition-all bg-grass text-white border-4 border-ink pixel-shadow-sm">5/16（土）伊万里</button>
+      <button onclick="switchVenue('saga')" id="tab-saga" class="venue-tab py-4 px-6 font-black transition-all bg-white text-ink border-4 border-ink pixel-shadow-sm">5/17（日）佐賀</button>
+    </div>
+
+    <div id="venue-card" class="card-pixel bg-white overflow-hidden fade-in">
+      <div class="relative h-64 md:h-80 border-b-4 border-ink">
+        <img id="venue-img" src="https://marketing.hibino.co.jp/case/file/8901.jpg" class="w-full h-full object-cover">
+        <div id="venue-date" class="absolute bottom-4 left-4 font-pixel text-[10px] bg-ink text-coin px-3 py-1.5 border-2 border-coin">5月16日（土）</div>
+      </div>
+      <div class="p-6 md:p-10">
+        <h4 id="venue-name" class="text-2xl md:text-3xl mb-3">COZホール</h4>
+        <p class="flex items-center gap-2 text-grass-d font-black mb-3">📍 <span id="venue-address">佐賀県伊万里市伊万里町甲</span></p>
+        <p id="venue-desc" class="leading-relaxed mb-6 opacity-85">伊万里駅から徒歩圏内の多目的ホール。お車の場合は周辺駐車場をご利用ください。</p>
+        <a id="venue-map" href="https://www.google.com/maps/search/?api=1&query=佐賀県伊万里市伊万里町甲+COZホール" target="_blank" class="btn-quest">▶ Google Mapで見る</a>
+      </div>
+    </div>
+
+    <div class="mt-10 grid grid-cols-2 md:grid-cols-4 gap-3 fade-in">
+      <div class="card-pixel bg-white p-4 text-center"><div class="text-2xl mb-1">🍱</div><div class="font-black text-sm mb-1">お弁当持参</div><p class="text-xs opacity-70">会場内で食事OK</p></div>
+      <div class="card-pixel bg-white p-4 text-center"><div class="text-2xl mb-1">🏪</div><div class="font-black text-sm mb-1">周辺にコンビニ</div><p class="text-xs opacity-70">混雑注意</p></div>
+      <div class="card-pixel bg-white p-4 text-center"><div class="text-2xl mb-1">💧</div><div class="font-black text-sm mb-1">飲み物</div><p class="text-xs opacity-70">集中するので水分補給</p></div>
+      <div class="card-pixel bg-white p-4 text-center"><div class="text-2xl mb-1">⚠️</div><div class="font-black text-sm mb-1">アレルギー各自</div><p class="text-xs opacity-70">昼食提供なし</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== FAQ ====== -->
+<section id="faq" class="py-20 bg-paper">
+  <div class="max-w-3xl mx-auto px-4 md:px-8">
+    <div class="text-center mb-10 fade-in">
+      <span class="section-h">▶ FAQ</span>
+      <h2 class="mt-5 text-3xl md:text-4xl">よくある質問</h2>
+    </div>
+    <div class="space-y-3">
+      <details class="fade-in card-pixel bg-white p-5 group">
+        <summary class="flex items-start gap-3 cursor-pointer font-black"><span class="shrink-0 w-8 h-8 bg-grass text-white grid place-items-center text-xs font-pixel border-2 border-ink">Q</span><span class="flex-1">はんだ付けが初めてでも大丈夫？</span><span class="text-lg opacity-50 group-open:rotate-45 transition-transform">＋</span></summary>
+        <div class="mt-3 ml-11 text-sm leading-relaxed opacity-85">講師がやさしく丁寧に教えます。失敗してもスタッフがすぐに直してくれます。過去のワークショップでもほとんどの子が初体験ですが、全員最後までやり遂げています。</div>
+      </details>
+      <details class="fade-in card-pixel bg-white p-5 group">
+        <summary class="flex items-start gap-3 cursor-pointer font-black"><span class="shrink-0 w-8 h-8 bg-grass text-white grid place-items-center text-xs font-pixel border-2 border-ink">Q</span><span class="flex-1">対象年齢は何歳から？</span><span class="text-lg opacity-50 group-open:rotate-45 transition-transform">＋</span></summary>
+        <div class="mt-3 ml-11 text-sm leading-relaxed opacity-85">小学4年生〜中学生です。必ず保護者同伴でご参加ください。はんだごてを使うため、小学3年生以下はご参加いただけません。</div>
+      </details>
+      <details class="fade-in card-pixel bg-white p-5 group">
+        <summary class="flex items-start gap-3 cursor-pointer font-black"><span class="shrink-0 w-8 h-8 bg-grass text-white grid place-items-center text-xs font-pixel border-2 border-ink">Q</span><span class="flex-1">パソコンやプログラミングの知識は必要？</span><span class="text-lg opacity-50 group-open:rotate-45 transition-transform">＋</span></summary>
+        <div class="mt-3 ml-11 text-sm leading-relaxed opacity-85">必要ありません。IchigoJamはBASIC言語というシンプルな言語を使うので初めてでも大丈夫。キーボードに慣れていなくてもスタッフがサポートします。</div>
+      </details>
+      <details class="fade-in card-pixel bg-white p-5 group">
+        <summary class="flex items-start gap-3 cursor-pointer font-black"><span class="shrink-0 w-8 h-8 bg-grass text-white grid place-items-center text-xs font-pixel border-2 border-ink">Q</span><span class="flex-1">作ったIchigoJamは持ち帰れる？</span><span class="text-lg opacity-50 group-open:rotate-45 transition-transform">＋</span></summary>
+        <div class="mt-3 ml-11 text-sm leading-relaxed opacity-85">はい、お持ち帰りいただけます。ご自宅でもテレビ（コンポジット入力付き）とPS/2キーボードがあればプログラミングを続けられます。</div>
+      </details>
+      <details class="fade-in card-pixel bg-white p-5 group">
+        <summary class="flex items-start gap-3 cursor-pointer font-black"><span class="shrink-0 w-8 h-8 bg-grass text-white grid place-items-center text-xs font-pixel border-2 border-ink">Q</span><span class="flex-1">両日とも参加できる？</span><span class="text-lg opacity-50 group-open:rotate-45 transition-transform">＋</span></summary>
+        <div class="mt-3 ml-11 text-sm leading-relaxed opacity-85">同じ内容のため、いずれか1日のみのお申込みをお願いします。</div>
+      </details>
+      <details class="fade-in card-pixel bg-white p-5 group">
+        <summary class="flex items-start gap-3 cursor-pointer font-black"><span class="shrink-0 w-8 h-8 bg-grass text-white grid place-items-center text-xs font-pixel border-2 border-ink">Q</span><span class="flex-1">定員を超えた場合は？</span><span class="text-lg opacity-50 group-open:rotate-45 transition-transform">＋</span></summary>
+        <div class="mt-3 ml-11 text-sm leading-relaxed opacity-85">各日16組を超えた場合は<b>公平な抽選</b>です。早く申し込んでも、締切直前に申し込んでも当選確率は同じ。結果は5月9日までに全員にメールでご連絡します。</div>
+      </details>
+      <details class="fade-in card-pixel bg-white p-5 group">
+        <summary class="flex items-start gap-3 cursor-pointer font-black"><span class="shrink-0 w-8 h-8 bg-grass text-white grid place-items-center text-xs font-pixel border-2 border-ink">Q</span><span class="flex-1">兄弟姉妹で参加したい場合は？</span><span class="text-lg opacity-50 group-open:rotate-45 transition-transform">＋</span></summary>
+        <div class="mt-3 ml-11 text-sm leading-relaxed opacity-85">対象年齢内なら歓迎です。1組＝保護者1名＋お子さま複数可。お申込み時に「お問い合わせ等」に二人目以降のお名前と学年をご記入ください。</div>
+      </details>
+      <details class="fade-in card-pixel bg-white p-5 group">
+        <summary class="flex items-start gap-3 cursor-pointer font-black"><span class="shrink-0 w-8 h-8 bg-grass text-white grid place-items-center text-xs font-pixel border-2 border-ink">Q</span><span class="flex-1">駐車場はある？</span><span class="text-lg opacity-50 group-open:rotate-45 transition-transform">＋</span></summary>
+        <div class="mt-3 ml-11 text-sm leading-relaxed opacity-85">各会場に駐車場あり。台数に限りがある場合もあるので公共交通機関もご検討ください。</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ====== SPONSOR ====== -->
+<section id="sponsor" class="py-20 bg-white">
+  <div class="max-w-5xl mx-auto px-4 md:px-8">
+    <div class="text-center mb-10 fade-in">
+      <span class="section-h">▶ SPONSORS</span>
+      <h2 class="mt-5 text-3xl md:text-4xl">スポンサー募集</h2>
+      <p class="mt-3 opacity-80 max-w-2xl mx-auto">次世代を担う子どもたちの学びを支えてくださる、サポーター企業・個人の皆さまを募集しています。</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+      <div class="fade-in card-pixel p-6 text-center bg-paper border-t-[10px] border-gold"><span class="font-pixel text-xs text-gold">GOLD</span><div class="font-pixel text-3xl my-3">5万</div><p class="text-xs opacity-70">大サイズロゴ掲載</p></div>
+      <div class="fade-in card-pixel p-6 text-center bg-paper border-t-[10px] border-silver"><span class="font-pixel text-xs text-silver">SILVER</span><div class="font-pixel text-3xl my-3">3万</div><p class="text-xs opacity-70">中サイズロゴ掲載</p></div>
+      <div class="fade-in card-pixel p-6 text-center bg-paper border-t-[10px] border-bronze"><span class="font-pixel text-xs text-bronze">BRONZE</span><div class="font-pixel text-3xl my-3">1万</div><p class="text-xs opacity-70">小サイズロゴ掲載</p></div>
+    </div>
+    <div class="fade-in card-pixel bg-paper p-6 md:p-8 text-center">
+      <h4 class="text-grass-d mb-2">ご協賛金の用途</h4>
+      <p class="leading-relaxed max-w-2xl mx-auto text-sm md:text-base opacity-85">教材費（IchigoJamキット）、会場費、保険料などに活用いたします。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ====== CTA ====== -->
+<section id="contact" class="py-24 hero-sky text-center relative overflow-hidden">
+  <div class="absolute bottom-0 left-0 w-full h-8 pixel-ground border-t-4 border-ink"></div>
+  <div class="relative max-w-3xl mx-auto px-4 md:px-8 fade-in">
+    <span class="inline-block font-pixel text-xs bg-ink text-coin px-4 py-2 mb-5 border-4 border-ink">▶ PRESS START</span>
+    <h2 class="text-4xl md:text-6xl text-ink leading-tight mb-5">
+      きみの1日を、<br>
+      <span class="bg-ink text-coin px-3 inline-block">冒険</span>に変えよう。
+    </h2>
+    <p class="text-lg font-bold mb-8 text-ink/85">申込〆切：5月7日 ／ 各日 親子16組（抽選制）</p>
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSfXnKgXhcliYisgGPIirNkLT0zsZUS83ASh_rFXyQBoOUDn_Q/viewform?usp=dialog" class="btn-quest text-lg px-10 py-5">▶ 冒険に参加する</a>
+    <p class="mt-6 text-xs text-ink/70">※ <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="91e2f0f6f0bffbe1d1f2fef5f4e3f5fefbfebff2fefc">[email&#160;protected]</a> からのメールが受信できるよう設定をお願いします</p>
+  </div>
+</section>
+
+<!-- ====== ORG ====== -->
+<section id="org" class="py-20 bg-paper">
+  <div class="max-w-6xl mx-auto px-4 md:px-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 relative fade-in">
+      <div class="space-y-4">
+        <div class="flex items-center gap-2"><span class="font-pixel text-[9px] text-ink/60 whitespace-nowrap">LECTURER</span><div class="h-px bg-ink/20 w-full"></div></div>
+        <div class="card-pixel bg-white p-4 h-24 grid place-items-center max-w-[200px]"><img src="KVロゴデザイン_02_黒.png" class="max-h-full w-auto"></div>
+      </div>
+      <div class="space-y-4 md:border-l-4 md:border-dashed md:border-ink/20 md:pl-8">
+        <div class="flex items-center gap-2"><span class="font-pixel text-[9px] text-ink/60 whitespace-nowrap">ORGANIZER</span><div class="h-px bg-ink/20 w-full"></div></div>
+        <div class="space-y-3">
+          <div class="flex items-center gap-4"><div class="w-16 h-16 card-pixel bg-white p-1 grid place-items-center overflow-hidden"><img src="Ⅸ-Partyロゴ.jpg" class="w-full"></div><div class="font-bold">Ⅸ-Party</div></div>
+          <div class="flex items-center gap-4"><div class="w-16 h-16 card-pixel bg-white p-1 grid place-items-center overflow-hidden"><img src="Dojoロゴ (1).jpg" class="w-full"></div><div class="font-bold">CoderDojoさが<br><span class="text-xs opacity-60 font-medium">子どものためのプログラミング道場</span></div></div>
+        </div>
+      </div>
+      <div class="space-y-4 lg:border-l-4 lg:border-dashed lg:border-ink/20 lg:pl-8">
+        <div class="flex items-center gap-2"><span class="font-pixel text-[9px] text-ink/60 whitespace-nowrap">COOPERATION</span><div class="h-px bg-ink/20 w-full"></div></div>
+        <div class="card-pixel bg-white p-4 h-24 grid place-items-center max-w-[240px]"><img src="https://www.atpress.ne.jp/files/72854/header20211210054339phpejUY4x.png" class="max-h-full w-auto"></div>
+      </div>
+      <div class="space-y-4 lg:border-l-4 lg:border-dashed lg:border-ink/20 lg:pl-8">
+        <div class="flex items-center gap-2"><span class="font-pixel text-[9px] text-ink/60 whitespace-nowrap">AUSPICES</span><div class="h-px bg-ink/20 w-full"></div></div>
+        <p class="text-xs font-bold leading-relaxed opacity-80">佐賀県、佐賀県教育委員会、伊万里市、伊万里市教育委員会、佐賀市、佐賀市教育委員会</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="bg-ink py-10 px-4 text-center border-t-4 border-coin">
+  <p class="text-white/60 text-sm font-medium">© 2025 IX-Party・CoderDojoさが ｜ 未来をつくる手のひらサイズの冒険</p>
+  <p class="text-white/40 text-xs mt-2">※IchigoJamは株式会社jig.jpの登録商標です。</p>
+</footer>
+
+<div class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 md:hidden">
+  <a href="https://docs.google.com/forms/d/e/1FAIpQLSfXnKgXhcliYisgGPIirNkLT0zsZUS83ASh_rFXyQBoOUDn_Q/viewform?usp=dialog" class="btn-quest whitespace-nowrap">▶ 冒険に参加する</a>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js" defer></script><script>
+const menuToggle = document.getElementById('menu-toggle');
+const mobileMenu = document.getElementById('mobile-menu');
+const mobileLinks = document.querySelectorAll('.mobile-link');
+menuToggle.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+mobileLinks.forEach(l => l.addEventListener('click', () => mobileMenu.classList.add('hidden')));
+
+const venues = {
+  imari: { date: "5月16日（土）", name: "COZホール", address: "佐賀県伊万里市伊万里町甲", desc: "伊万里駅から徒歩圏内の多目的ホール。お車の場合は周辺駐車場をご利用ください。", map: "https://www.google.com/maps/search/?api=1&query=佐賀県伊万里市伊万里町甲+COZホール", img: "https://marketing.hibino.co.jp/case/file/8901.jpg" },
+  saga: { date: "5月17日（日）", name: "アバンセ 第3研修室", address: "佐賀県佐賀市天神三丁目2-11", desc: "佐賀駅バスセンターからバスで約10分。県立男女共同参画センター「アバンセ」内の研修室です。", map: "https://www.google.com/maps/search/?api=1&query=佐賀県佐賀市天神三丁目2-11+アバンセ", img: "https://www.avance.or.jp/var/rev0/0020/1718/avance.jpg" }
+};
+function switchVenue(id){
+  const v=venues[id];
+  document.getElementById('venue-img').src=v.img;
+  document.getElementById('venue-date').innerText=v.date;
+  document.getElementById('venue-name').innerText=v.name;
+  document.getElementById('venue-address').innerText=v.address;
+  document.getElementById('venue-desc').innerText=v.desc;
+  document.getElementById('venue-map').href=v.map;
+  document.querySelectorAll('.venue-tab').forEach(t=>{t.classList.remove('bg-grass','text-white');t.classList.add('bg-white','text-ink');});
+  const a=document.getElementById('tab-'+id);
+  a.classList.add('bg-grass','text-white');
+  a.classList.remove('bg-white','text-ink');
+}
+const observer = new IntersectionObserver((entries)=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.1});
+document.querySelectorAll('.fade-in').forEach(el=>observer.observe(el));
+</script>
+</body>
+</html>
