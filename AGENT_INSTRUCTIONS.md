@@ -24,6 +24,7 @@
 
 ### 2.2 技術スタック
 - **基本技術**: HTML と Tailwind CSS (CDN経由) を標準とする。(`index.html` 内での `<script src="https://cdn.tailwindcss.com"></script>` および設定スクリプトによる運用)
+  - **【備考】CSSの非分離について**: Tailwind CSSをCDN経由で利用する制約上、`@apply`等を用いたカスタムCSSは外部ファイル（`style.css`等）に分離せず、必ず `index.html` 内の `<style type="text/tailwindcss">` に記述すること（外部ファイル化するとCDNスクリプトがパースできずスタイルが適用されません）。
 - **JavaScriptの制限**: Reactなどのフレームワークや大規模ライブラリは極力使用せず、機能の実現は必要最低限のバニラJS（IntersectionObserverや簡単なトグル処理など）のみを使用すること。
 
 ### 2.3 機能要件（今後の拡張予定）
