@@ -80,3 +80,6 @@ magick assets/images/logo.png -background transparent -define icon:auto-resize=6
 # OGP画像 (ogp.png) の再生成
 magick assets/images/logo.png -resize 1200x630 -background white -gravity center -extent 1200x630 ogp.png
 ```
+
+### 4.3 開発・PR作成ルール
+本リポジトリに対してPull Request (PR) を作成する際は、タイトルおよび説明文を含め、**必ず日本語で記述**してください。
